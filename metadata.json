@@ -1,0 +1,5 @@
+{
+  "name": "Gemini AI Tetris",
+  "description": "A modern, high-performance Tetris game built with React and Tailwind CSS, featuring an AI coach powered by Gemini 3 to help you improve your strategy.",
+  "requestFramePermissions": []
+}
