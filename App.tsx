@@ -1,14 +1,23 @@
-
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTetris } from './hooks/useTetris';
 import { useInterval } from './hooks/useInterval';
 import { COLS, ROWS } from './constants';
-import { getGeminiAdvice } from './services/geminiService';
+
+const getScoreComment = (score: number): string => {
+  if (score >= 50000) return "神レベル！ 殿堂入り確定だ。";
+  if (score >= 20000) return "伝説級のスコア！ 尊敬する。";
+  if (score >= 10000) return "すごい！ テトリスマスターへの道。";
+  if (score >= 5000) return "なかなかやるね！ この調子だ。";
+  if (score >= 2000) return "いいスタート！ 続けよう。";
+  if (score >= 500) return "まずは一歩。 もう一度挑戦！";
+  return "初手からつまずいた… リトライで慣れていこう。";
+};
+
+const DEFAULT_COMMENT = "ゲームをプレイ中！ 終了するとスコアに応じたコメントが表示されます。";
 
 const App: React.FC = () => {
   const { gameState, move, handleRotate, holdPiece, togglePause, resetGame, dropSpeed } = useTetris();
-  const [aiAdvice, setAiAdvice] = useState<string>("ゲームを開始してアドバイスをもらおう！");
-  const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
+  const [comment, setComment] = useState<string>(DEFAULT_COMMENT);
 
   // Auto drop
   useInterval(() => {
@@ -55,13 +64,13 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [move, handleRotate, holdPiece, togglePause, gameState.gameOver]);
 
-  const requestAdvice = useCallback(async () => {
-    if (isAiLoading) return;
-    setIsAiLoading(true);
-    const advice = await getGeminiAdvice(gameState.grid, gameState.nextPiece, gameState.score);
-    setAiAdvice(advice);
-    setIsAiLoading(false);
-  }, [gameState.grid, gameState.nextPiece, gameState.score, isAiLoading]);
+  useEffect(() => {
+    if (gameState.gameOver) {
+      setComment(getScoreComment(gameState.score));
+    } else {
+      setComment(DEFAULT_COMMENT);
+    }
+  }, [gameState.gameOver, gameState.score]);
 
   // Render Cell
   const renderGrid = () => {
@@ -195,19 +204,11 @@ const App: React.FC = () => {
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 relative overflow-hidden">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-              <h2 className="text-xs text-slate-500 uppercase font-bold">AI Coach Advice</h2>
+              <h2 className="text-xs text-slate-500 uppercase font-bold">コメント</h2>
             </div>
             <p className="text-sm italic text-slate-600 min-h-[4rem] leading-relaxed">
-              "{isAiLoading ? "思考中..." : aiAdvice}"
+              "{comment}"
             </p>
-            <button 
-              onClick={requestAdvice}
-              disabled={isAiLoading || gameState.gameOver}
-              className="mt-3 w-full py-2 bg-white hover:bg-slate-100 border border-slate-200 disabled:opacity-50 text-xs rounded-lg transition-colors flex items-center justify-center gap-2 font-bold shadow-sm"
-            >
-              <i className="fas fa-robot text-blue-500"></i>
-              アドバイスを聞く
-            </button>
           </div>
 
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
