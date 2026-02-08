@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# 機密情報（APIキー等）
+.env
+.env.local
+.env.*.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
